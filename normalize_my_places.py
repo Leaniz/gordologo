@@ -37,6 +37,18 @@ def get_save_detailed_info(place_id, gmaps, elast, idx='restaurants-gordologo-de
         # save to elastic
         return save_to_elastic(place_doc['result'], elast, idx, place_id)
 
+def save_fail_info(place_doc, elast, idx='restaurants-gordologo-fail'):
+    # check if document already in DB
+    place_id = place_doc['name']
+    res = elast.get(index=idx, id=place_id, ignore=404)
+    if res['found']:
+        name = res['_source']['name']
+        print(f'Place <{name}> already in DB')
+        return 404
+    else:
+        # save to elastic
+        return save_to_elastic(place_doc, elast, idx, place_id)
+
 def get_places_info_from_names(places_names, gmaps_client, elastic_client):
     """
         Call Google API to get places information.
@@ -54,7 +66,7 @@ def get_places_info_from_names(places_names, gmaps_client, elastic_client):
                 status = get_save_detailed_info(place_id, gmaps_client, elastic_client)
             else:
                 doc = {'name': place, 'candidates': r['candidates']}
-                status = save_to_elastic(doc,elastic_client, 'restaurants-gordologo-fail')                
+                status = save_fail_info(doc, elastic_client, 'restaurants-gordologo-fail')                
         else:
             print(f'Unsuccesful request:\n {r}')
             return False
