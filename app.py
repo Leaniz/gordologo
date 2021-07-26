@@ -14,56 +14,48 @@ jwt = JWT(app, authenticate, identity) # /auth
 
 class Restaurant(Resource):
     parser = reqparse.RequestParser()
-    # add mandatory fields
     
-    parser.add_argument("business_status", 
-                        type=str, 
-                        required=True, 
-                        help="This field is mandatory.")
-    parser.add_argument("formatted_address", 
-                        type=str, 
-                        required=True, 
-                        help="This field is mandatory.")
-    parser.add_argument("geometry", 
-                        type=dict, 
-                        required=True, 
-                        help="This field is mandatory.")
-    parser.add_argument("international_phone_number", 
-                        type=str, 
-                        required=True, 
-                        help="This field is mandatory.")
+    # add mandatory fields
     parser.add_argument("name", 
                         type=str, 
-                        required=True, 
-                        help="This field is mandatory.")
-    parser.add_argument("opening_hours", 
-                        type=dict, 
                         required=True, 
                         help="This field is mandatory.")
     parser.add_argument("place_id", 
                         type=str, 
                         required=True, 
                         help="This field is mandatory.")
+
+    # add optional but important fields
+    parser.add_argument("business_status", 
+                        type=str, 
+                        required=False)
+    parser.add_argument("formatted_address", 
+                        type=str, 
+                        required=False)
+    parser.add_argument("geometry", 
+                        type=dict, 
+                        required=False)
+    parser.add_argument("international_phone_number", 
+                        type=str, 
+                        required=False)
+    parser.add_argument("opening_hours", 
+                        type=dict, 
+                        required=False)
     parser.add_argument("price_level", 
                         type=int, 
-                        required=True, 
-                        help="This field is mandatory.")
+                        required=False)
     parser.add_argument("rating", 
                         type=float, 
-                        required=True, 
-                        help="This field is mandatory.")
+                        required=False)
     parser.add_argument("types", 
                         type=list, 
-                        required=True, 
-                        help="This field is mandatory.")
+                        required=False)
     parser.add_argument("user_ratings_total", 
                         type=int, 
-                        required=True, 
-                        help="This field is mandatory.")
+                        required=False)
     parser.add_argument("website", 
                         type=str, 
-                        required=True, 
-                        help="This field is mandatory.")
+                        required=False)
 
     # add optional fields
     parser.add_argument("address_components", 
