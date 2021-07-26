@@ -14,7 +14,7 @@ jwt = JWT(app, authenticate, identity) # /auth
 
 class Restaurant(Resource):
     parser = reqparse.RequestParser()
-    
+
     # add mandatory fields
     parser.add_argument("name", 
                         type=str, 
@@ -87,7 +87,7 @@ class Restaurant(Resource):
                         required=False)
 
     elast = Elasticsearch('localhost', port=9200)
-    elast_idx = "gordologo-default"
+    elast_idx = "gordologo-restaurants"
 
     @jwt_required()
     def get(self, id_):
@@ -157,7 +157,7 @@ class RestaurantList(Resource):
                         default=10)
 
     elast = Elasticsearch('localhost', port=9200)
-    elast_idx = "restaurants-gordologo-default"
+    elast_idx = "gordologo-restaurants"
 
     def get(self):
         data = RestaurantList.parser.parse_args()
