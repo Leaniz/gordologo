@@ -14,5 +14,5 @@ jwt = JWT(app, authenticate, identity) # /auth
 
 api.add_resource(Restaurant, "/restaurant/<string:id>")
 api.add_resource(RestaurantList, "/restaurants")
-api.add_resource(UserRegister, "/user")
+api.add_resource(UserRegister, "/register")
 app.run(port=5000, debug=True)
