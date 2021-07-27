@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask
 from flask_restful import Resource, Api, reqparse
 from flask_jwt import JWT, jwt_required
 from elasticsearch import Elasticsearch
