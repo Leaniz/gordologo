@@ -4,6 +4,7 @@ from flask_jwt import JWT, jwt_required
 from elasticsearch import Elasticsearch
 
 from security import authenticate, identity
+from user import UserRegister
 
 app = Flask(__name__)
 app.secret_key = "secret_key"
@@ -176,4 +177,5 @@ class RestaurantList(Resource):
 
 api.add_resource(Restaurant, "/restaurant/<string:id>")
 api.add_resource(RestaurantList, "/restaurants")
+api.add_resource(UserRegister, "/user")
 app.run(port=5000, debug=True)

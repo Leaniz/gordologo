@@ -1,9 +1,11 @@
+import bcrypt
+
 from user import User
 
 
 def authenticate(username, password):
     user = User.find_by_username(username)
-    if user and user.password == password:
+    if user and bcrypt.hashpw(password.encode("utf-8"), user.password_hash.encode("utf-8")) == user.password_hash.encode("utf-8"):
         return user
 
 def identity(payload):
