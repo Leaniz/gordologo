@@ -2,6 +2,9 @@ from elasticsearch import Elasticsearch
 from flask_restful import Resource, reqparse
 from flask_jwt import jwt_required
 
+from models.restaurant import RestaurantModel
+
+
 class Restaurant(Resource):
     parser = reqparse.RequestParser()
 
@@ -76,60 +79,50 @@ class Restaurant(Resource):
                         type=str, 
                         required=False)
 
-    elast = Elasticsearch('localhost', port=9200)
-    elast_idx = "gordologo-restaurants"
-
     @jwt_required()
-    def get(self, id_):
-        res = Restaurant.elast.get(index=Restaurant.elast_idx, 
-                                   id=id_, 
-                                   ignore=404)
-        if res['found']:
-            return {"restaurant": res['_source']}, 200
+    def get(self, place_id):
+        restaurant = RestaurantModel.find_by_id(place_id)
+        if restaurant:
+            return {"restaurant": restaurant.to_dict()}, 200
         else:
             return {"restaurant": None}, 404
 
     @jwt_required()
-    def post(self, id_):
-        res = Restaurant.elast.get(index=Restaurant.elast_idx, 
-                                   id=id_, 
-                                   ignore=404)
-        if res['found']:
-            return {"message": f"Restaurant '{id_}' already exists"}, 400
+    def post(self, place_id):
+        if RestaurantModel.find_by_id(place_id):
+            return {"message": f"Restaurant '{place_id}' already exists"}, 400
 
         data = Restaurant.parser.parse_args()
-        res = Restaurant.elast.index(index=Restaurant.elast_idx, 
-                                     id=id_, 
-                                     body=data)
-        if res['result'] != 'created':
+        restaurant = RestaurantModel(**data)
+        res = restaurant.save_to_db()
+        if res != 'created':
             return {"message": "Internal server error"}, 500
         else:
-            return {"restaurant": data}, 201
+            return {"restaurant": restaurant.to_dict()}, 201
 
     @jwt_required()
-    def delete(self, id_):
-        res = Restaurant.elast.delete(index=Restaurant.elast_idx, 
-                                      id=id_,
-                                      ignore=404)
-        if res["result"] == "deleted":
-            return {"message": "Item deleted"}
+    def delete(self, place_id):
+        res = RestaurantModel.delete_from_db(place_id)
+        if res == "deleted":
+            return {"message": "Item deleted"}, 200
         else:
             return {"message": "Item not found"}, 404
 
     @jwt_required()
-    def put(self, id_):
+    def put(self, place_id):
         data = Restaurant.parser.parse_args()
 
-        res = Restaurant.elast.get(index=Restaurant.elast_idx, 
-                                   id=id_, 
-                                   ignore=404)
-        found = res['found']
+        found = True if RestaurantModel.find_by_id(place_id) is not None else False
 
-        res = Restaurant.elast.index(index=Restaurant.elast_idx, 
-                                     id=id_, 
-                                     body=data)
-        if (res['result'] == 'created' and not found) or (res['result'] == 'updated' and found):
-            return {"restaurant": data}, 201 if not found else 200
+        restaurant = RestaurantModel(**data)
+        res = restaurant.save_to_db()
+
+        if (res == 'created' and not found) or (res == 'updated' and found):
+            response = {"restaurant": restaurant.to_dict()}
+            if found:
+                return response, 200
+            else:
+                return response, 201
         else:
             return {"message": "Internal server error"}, 500
 
@@ -146,20 +139,11 @@ class RestaurantList(Resource):
                         required=False,
                         default=10)
 
-    elast = Elasticsearch('localhost', port=9200)
-    elast_idx = "gordologo-restaurants"
-
+    @jwt_required()
     def get(self):
         data = RestaurantList.parser.parse_args()
-        query = {
-            "query": {
-                "match_all": {}
-            },
-            "size": data["size"],
-            "from": data["from"]
-        }
-        res = RestaurantList.elast.search(index=RestaurantList.elast_idx, 
-                                          body=query)
-        restaurants = [r["_source"] for r in res['hits']['hits']]
+        data["from_"] = data.pop("from")
+        
+        restaurants = RestaurantModel.find_all(**data)
 
         return {"restaurants": restaurants}
