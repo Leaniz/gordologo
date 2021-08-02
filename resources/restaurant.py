@@ -1,6 +1,7 @@
 from elasticsearch import Elasticsearch
 from flask_restful import Resource, reqparse
 from flask_jwt import jwt_required
+import googlemaps
 
 from models.restaurant import RestaurantModel
 
@@ -8,17 +9,11 @@ from models.restaurant import RestaurantModel
 class Restaurant(Resource):
     parser = reqparse.RequestParser()
 
-    # add mandatory fields
+    # add optional but important fields
     parser.add_argument("name", 
                         type=str, 
-                        required=True, 
+                        required=False, 
                         help="This field is mandatory.")
-    parser.add_argument("place_id", 
-                        type=str, 
-                        required=True, 
-                        help="This field is mandatory.")
-
-    # add optional but important fields
     parser.add_argument("business_status", 
                         type=str, 
                         required=False)
@@ -93,12 +88,18 @@ class Restaurant(Resource):
             return {"message": f"Restaurant '{place_id}' already exists"}, 400
 
         data = Restaurant.parser.parse_args()
+        data["place_id"] = place_id
         restaurant = RestaurantModel(**data)
-        res = restaurant.save_to_db()
-        if res != 'created':
-            return {"message": "Internal server error"}, 500
+        res = restaurant.validate_data()
+        if "error" not in res:
+            res = restaurant.save_to_db()
+            if res != 'created':
+                return {"message": "Internal server error"}, 500
+            else:
+                return {"restaurant": restaurant.to_dict()}, 201
         else:
-            return {"restaurant": restaurant.to_dict()}, 201
+            print(res)
+            return {"message": "Internal server error"}, 500
 
     @jwt_required()
     def delete(self, place_id):
@@ -111,18 +112,23 @@ class Restaurant(Resource):
     @jwt_required()
     def put(self, place_id):
         data = Restaurant.parser.parse_args()
+        data["place_id"] = place_id
 
         found = True if RestaurantModel.find_by_id(place_id) is not None else False
 
         restaurant = RestaurantModel(**data)
-        res = restaurant.save_to_db()
+        res = restaurant.validate_data()
+        if "error" not in res:
+            res = restaurant.save_to_db()
 
-        if (res == 'created' and not found) or (res == 'updated' and found):
-            response = {"restaurant": restaurant.to_dict()}
-            if found:
-                return response, 200
+            if (res == 'created' and not found) or (res == 'updated' and found):
+                response = {"restaurant": restaurant.to_dict()}
+                if found:
+                    return response, 200
+                else:
+                    return response, 201
             else:
-                return response, 201
+                return {"message": "Internal server error"}, 500
         else:
             return {"message": "Internal server error"}, 500
 
@@ -147,3 +153,17 @@ class RestaurantList(Resource):
         restaurants = RestaurantModel.find_all(**data)
 
         return {"restaurants": restaurants}
+
+
+class RestaurantImport(Resource):
+
+    parser = reqparse.RequestParser()    
+    parser.add_argument("name",
+                        type=str, 
+                        required=True,
+                        help="This field is mandatory.")
+
+    @jwt_required()
+    def post(self):
+        data = RestaurantList.parser.parse_args()
+        return None
