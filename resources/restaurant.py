@@ -176,5 +176,8 @@ class RestaurantImport(Resource):
             print("Searching in gmaps")
             restaurant_import = RestaurantImportModel(name)
             res = restaurant_import.find_in_gmaps()
+            res["source"] = "Google Maps"
+        else:
+            res["source"] = "Gordologo"
 
         return res
