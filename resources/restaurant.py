@@ -1,9 +1,7 @@
-from elasticsearch import Elasticsearch
 from flask_restful import Resource, reqparse
 from flask_jwt import jwt_required
-import googlemaps
 
-from models.restaurant import RestaurantModel
+from models.restaurant import RestaurantModel, RestaurantImportModel
 
 
 class Restaurant(Resource):
@@ -165,5 +163,6 @@ class RestaurantImport(Resource):
 
     @jwt_required()
     def post(self):
-        data = RestaurantList.parser.parse_args()
-        return None
+        data = RestaurantImport.parser.parse_args()
+        res_import = RestaurantImportModel(data["name"])
+        return res_import.find_in_gmaps()

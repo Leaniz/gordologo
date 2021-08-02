@@ -1,4 +1,3 @@
-from typing import final
 from elasticsearch import Elasticsearch
 import googlemaps
 
