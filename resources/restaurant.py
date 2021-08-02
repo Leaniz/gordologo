@@ -6,12 +6,13 @@ from models.restaurant import RestaurantModel, RestaurantImportModel
 
 class Restaurant(Resource):
     parser = reqparse.RequestParser()
-
-    # add optional but important fields
+    # add mandatory field
     parser.add_argument("name", 
                         type=str, 
-                        required=False, 
+                        required=True, 
                         help="This field is mandatory.")
+
+    # add optional but important fields
     parser.add_argument("business_status", 
                         type=str, 
                         required=False)
@@ -160,9 +161,20 @@ class RestaurantImport(Resource):
                         type=str, 
                         required=True,
                         help="This field is mandatory.")
+    parser.add_argument("force_gmaps",
+                        type=bool, 
+                        required=False,
+                        default=False)
 
     @jwt_required()
-    def post(self):
+    def get(self):
         data = RestaurantImport.parser.parse_args()
-        res_import = RestaurantImportModel(data["name"])
-        return res_import.find_in_gmaps()
+        name = data["name"]
+
+        res = RestaurantModel.find_by_name(name)
+        if data["force_gmaps"] or len(res["results"]) == 0:
+            print("Searching in gmaps")
+            restaurant_import = RestaurantImportModel(name)
+            res = restaurant_import.find_in_gmaps()
+
+        return res

@@ -11,7 +11,7 @@ class RestaurantModel:
         api_key = f.read()
     gmaps = googlemaps.Client(key=api_key)
 
-    def __init__(self, name, place_id, 
+    def __init__(self, name, place_id=None, 
                  business_status=None, formatted_address=None,
                  geometry=None, international_phone_number=None,
                  opening_hours=None, price_level=None,
@@ -99,10 +99,32 @@ class RestaurantModel:
                                    ignore=404)
         return cls(**res["_source"]) if res["found"] else None
 
+    @classmethod
+    def find_by_name(cls, name):
+        query = {
+            "query": {
+                "match": {
+                    "name": {
+                        "query": name,
+                        "operator": "AND",
+                        "fuzziness": 1
+                    }
+                }
+            }
+        }
+        res = RestaurantModel.elast.search(index=RestaurantModel.elast_idx, 
+                                           body=query)
+        restaurants = [r["_source"] for r in res["hits"]["hits"]]
+
+        return {"results": restaurants}
+
     def save_to_db(self):
-        res = RestaurantModel.elast.index(index=RestaurantModel.elast_idx, 
-                                     id=self.place_id, 
-                                     body=self.to_dict())
+        if self.place_id:
+            res = RestaurantModel.elast.index(index=RestaurantModel.elast_idx, 
+                                        id=self.place_id, 
+                                        body=self.to_dict())
+        else:
+            res = {"result": {"error": "Restaurant has no ID"}}
         return res["result"]
 
     @classmethod
