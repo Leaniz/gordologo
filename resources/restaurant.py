@@ -165,6 +165,9 @@ class RestaurantImport(Resource):
                         type=bool, 
                         required=False,
                         default=False)
+    parser.add_argument("location_bias",
+                        type=dict, 
+                        required=False)
 
     @jwt_required()
     def get(self):
@@ -175,7 +178,7 @@ class RestaurantImport(Resource):
         if data["force_gmaps"] or len(res["results"]) == 0:
             print("Searching in gmaps")
             restaurant_import = RestaurantImportModel(name)
-            res = restaurant_import.find_in_gmaps()
+            res = restaurant_import.find_in_gmaps(data.get("location_bias"))
             res["source"] = "Google Maps"
         else:
             res["source"] = "Gordologo"

@@ -182,11 +182,13 @@ class RestaurantImportModel:
     def __init__(self, name):
         self.name = name
 
-    def find_in_gmaps(self):
+    def find_in_gmaps(self, loc_bias=None):
+        location_bias = f"point:{loc_bias['lat']},{loc_bias['lon']}" if loc_bias else None
         r = RestaurantImportModel.gmaps.find_place(
             self.name, 
             "textquery", 
-            fields=["place_id", "formatted_address", "name", "price_level", "rating"]
+            fields=["place_id", "formatted_address", "name", "price_level", "rating"],
+            location_bias=location_bias
             )
 
         if r["status"] == "OK":
