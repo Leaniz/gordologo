@@ -1,5 +1,6 @@
 from elasticsearch import Elasticsearch
 import googlemaps
+from unidecode import unidecode
 
 
 class RestaurantModel:
@@ -192,8 +193,16 @@ class RestaurantImportModel:
             )
 
         if r["status"] == "OK":
-            return {"results": r["candidates"]}
+            output = {"results": r["candidates"]}
+            for restaurant in output["results"]:
+                restaurant["exact_match"] = self.compare_name(self.name, restaurant["name"])
+            return output
         elif r["status"] == "ZERO_RESULTS":
             return {"message": "No results found"}
         else:
             return {"message": "Internal server error"}, 500
+
+    def compare_name(self, name_1, name_2):
+        name_1 = unidecode(name_1).lower()
+        name_2 = unidecode(name_2).lower()
+        return name_1 == name_2
