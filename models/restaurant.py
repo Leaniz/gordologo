@@ -1,6 +1,7 @@
 from elasticsearch import Elasticsearch
 import googlemaps
 from utils import compare_name
+from datetime import datetime
 
 
 class RestaurantModel:
@@ -20,7 +21,8 @@ class RestaurantModel:
                  website=None, address_components=None, 
                  formatted_phone_number=None, icon=None, 
                  photos=None, plus_code=None, reviews=None,
-                 url=None, utc_offset=None, vicinity=None):
+                 url=None, utc_offset=None, vicinity=None, 
+                 last_updated=None):
 
         self.name = name
         self.place_id = place_id
@@ -43,6 +45,7 @@ class RestaurantModel:
         self.url = url
         self.utc_offset = utc_offset
         self.vicinity = vicinity
+        self.last_updated = last_updated
 
     def from_dict(self, d):
         self.name = d.get("name")
@@ -66,6 +69,7 @@ class RestaurantModel:
         self.url = d.get("url")
         self.utc_offset = d.get("utc_offset")
         self.vicinity = d.get("vicinity")
+        self.last_updated = datetime.now()
 
     def to_dict(self):
         d = {
@@ -89,7 +93,8 @@ class RestaurantModel:
             "reviews": self.reviews,
             "url": self.url,
             "utc_offset": self.utc_offset,
-            "vicinity": self.vicinity
+            "vicinity": self.vicinity,
+            "last_updated": self.last_updated
         }
         return d
 
