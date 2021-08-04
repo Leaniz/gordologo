@@ -117,6 +117,9 @@ class RestaurantModel:
                                            body=query)
         restaurants = [r["_source"] for r in res["hits"]["hits"]]
 
+        for restaurant in restaurants:
+                restaurant["exact_match"] = True
+
         return {"results": restaurants}
 
     def save_to_db(self):

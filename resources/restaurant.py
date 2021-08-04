@@ -6,13 +6,11 @@ from models.restaurant import RestaurantModel, RestaurantImportModel
 
 class Restaurant(Resource):
     parser = reqparse.RequestParser()
-    # add mandatory field
-    parser.add_argument("name", 
-                        type=str, 
-                        required=True, 
-                        help="This field is mandatory.")
 
     # add optional but important fields
+    parser.add_argument("name", 
+                        type=str, 
+                        required=False)
     parser.add_argument("business_status", 
                         type=str, 
                         required=False)
@@ -170,7 +168,7 @@ class RestaurantImport(Resource):
                         required=False)
 
     @jwt_required()
-    def get(self):
+    def post(self):
         data = RestaurantImport.parser.parse_args()
         name = data["name"]
 
