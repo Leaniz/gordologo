@@ -54,9 +54,19 @@ class Client:
                     "response": r.text}
 
     @renew_access_token
-    def search_add_restaurant(self, name):
+    def search_add_restaurant(self, name, lat=None, lon=None, force_gmaps=False):
+        body = {
+            "name": name
+        }
+        if lat and lon:
+            body["location_bias"] = {
+                    "lat": float(lat),
+                    "lon": float(lon)
+                }
+        if force_gmaps:
+            body["force_gmaps"] = True
         r = requests.post(self.url + "/find", 
-                          json={"name": name},
+                          json=body,
                           headers={"Authorization": f"JWT {self.jwt_token}"})
         if r.status_code == 200:
             data = r.json()
