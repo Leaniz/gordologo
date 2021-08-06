@@ -6,6 +6,9 @@ def get_places_names(csv_p):
     """get places names from exported URL"""
     df = pd.read_csv(csv_p)
     return [p for p in df.Titulo.tolist()]
+def save_to_log(r, p="./log.txt"):
+    with open(p, "a") as f:
+        f.write(str(r) + "\n")
 
 def bulk_add_restaurants(places_names, client):
     """
@@ -18,8 +21,9 @@ def bulk_add_restaurants(places_names, client):
         if res["message"] == "Success":
             pass
         elif "Error" in res["message"]:
-            print(res)
-            break
+            print(f"Error processing '{name}'")
+            save_to_log(res)
+            continue
         else:
             results = res["results"]
             if len(results) == 0:
@@ -27,8 +31,9 @@ def bulk_add_restaurants(places_names, client):
                 lat, lon = location_bias.split(",")
                 res = client.search_add_restaurant(name, lat, lon)
                 if res["message"] != "Success":
-                    print(res)
-                    break
+                    print(f"Error processing '{name}'")
+                    save_to_log(res)
+                    continue
             elif len(results) == 1 and not results[0]["exact_match"]:
                 answer = input(f"Is '{name}' this restaurant? (y/n)\n\n{results}")
                 if answer.lower() != "y":
@@ -36,8 +41,9 @@ def bulk_add_restaurants(places_names, client):
                     lat, lon = location_bias.split(",")
                     res = client.search_add_restaurant(name, lat, lon, True)
                     if res["message"] != "Success":
-                        print(res)
-                        break
+                        print(f"Error processing '{name}'")
+                        save_to_log(res)
+                        continue
             elif len(results) > 1:
                 results_dic = {j: r for j, r in enumerate(results)}
                 answer = input((f"Multiple results for '{name}'. Which is the correct restaurant?\n\n"
@@ -47,16 +53,19 @@ def bulk_add_restaurants(places_names, client):
                     lat, lon = location_bias.split(",")
                     res = client.search_add_restaurant(name, lat, lon)
                     if res["message"] != "Success":
-                        print(res)
-                        break
+                        print(f"Error processing '{name}'")
+                        save_to_log(res)
+                        continue
                 else:
                     res = client.add_restaurant(results_dic[int(answer)]["place_id"])
                     if res["message"] != "Success":
-                        print(res)
-                        break
+                        print(f"Error processing '{name}'")
+                        save_to_log(res)
+                        continue
             else:
-                print(res)
-                break
+                print(f"Error processing '{name}'")
+                save_to_log(res)
+                continue
         print(f"'{name}' processed correctly")
 
 
