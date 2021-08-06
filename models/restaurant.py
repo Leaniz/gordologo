@@ -71,7 +71,7 @@ class RestaurantModel:
         self.vicinity = d.get("vicinity")
         self.last_updated = datetime.now()
 
-    def to_dict(self):
+    def to_dict(self, jsonify=True):
         d = {
             "name": self.name,
             "place_id": self.place_id,
@@ -94,7 +94,7 @@ class RestaurantModel:
             "url": self.url,
             "utc_offset": self.utc_offset,
             "vicinity": self.vicinity,
-            "last_updated": self.last_updated
+            "last_updated": str(self.last_updated) if jsonify else self.last_updated
         }
         return d
 
@@ -131,7 +131,7 @@ class RestaurantModel:
         if self.place_id:
             res = RestaurantModel.elast.index(index=RestaurantModel.elast_idx, 
                                         id=self.place_id, 
-                                        body=self.to_dict())
+                                        body=self.to_dict(jsonify=False))
         else:
             res = {"result": {"error": "Restaurant has no ID"}}
         return res["result"]
